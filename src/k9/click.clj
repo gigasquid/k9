@@ -41,7 +41,7 @@
         in-hidden (gen-connections in-neurons hidden-neurons)
         out-neurons (map gen-neuron outputs)
         hidden-out (gen-connections hidden-neurons out-neurons)]
-    [ in-neurons in-hidden hidden-neurons hidden-out out-neurons]))
+    [in-neurons in-hidden hidden-neurons hidden-out out-neurons]))
 
 (def nn (gen-network [:world :river :bank] [:worldbank :river :earth]))
 nn
