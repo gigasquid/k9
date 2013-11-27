@@ -211,6 +211,80 @@ odeltas
            (update-weights (feed-forward [1 0] nn) [0 1] 0.2))))
 
 
+(defn train-network [network input target learning-rate]
+  (update-weights (feed-forward input network) target learning-rate))
+
+(testing "train-network"
+  (is (== [input-neurons
+            new-input-hidden-strengths
+            new-hidden-neurons
+            new-hidden-output-strengths
+           new-output-neurons]
+          (train-network nn [1 0] [0 1] 0.2))))
+
+
+;;;;;;;
+;;;;;;
+(def n1 (-> nn
+     (train-network [1 0] [0 1] 0.5)
+     (train-network [0.5 0] [0 0.5] 0.5)
+     (train-network [0.25 0] [0 0.25] 0.5)
+     ))
+
+(defn ff [input network]
+  (last (feed-forward input network)))
+
+;;untrained
+(ff [1 0] nn) ;=> [0.02315019005321053 0.027608061500083565]
+;;trained
+(ff [1 0] n1) ;=> [0.03765676393050254 0.10552175312900794]
+
+;; lets get some recur on
+(defn train-data [network data learning-rate]
+  (if-let [[input target] (first data)]
+    (recur
+     (train-network network input target learning-rate)
+     (rest data)
+     learning-rate)
+    network))
+
+(def n2 (train-data nn [
+                        [[1 0] [0 1]]
+                        [[0.5 0] [0 0.5]]
+                        [[0.25 0] [0 0.25] ]
+                        ]
+                    0.5))
+
+(ff [1 0] n2) ;=> [0.03765676393050254 0.10552175312900794]
+
+;; lazy training set of 1000 or something
+(defn inverse-data []
+  (let [n (rand 1)]
+    [[n 0] [0 n]]))
+
+(inverse-data)
+
+
+(def n3 (train-data nn (repeatedly 400 inverse-data) 0.5))
+
+(ff [1 0] n3) ;=> [-4.958278484025221E-4 0.8211647699205362]
+(ff [0.5 0] n3) ;=> [2.1645760787874696E-4 0.5579396715416916]
+(ff [0.25 0] n3) ;=> [1.8183385523103048E-4 0.31130601296149013]
+
+(def n4 (train-data nn (repeatedly 1000 inverse-data) 0.2))
+
+(ff [1 0] n4) ;=> [-4.954958580800465E-4 0.8160149309699489]
+(ff [0.5 0] n4) ;=> [2.0984340203290242E-4 0.5577429793364974]
+(ff [0.25 0] n4) ;=> [1.3457614704841535E-4 0.3061399408502212]
+
+
+
+
+
+
+
+
+
 
 
 
