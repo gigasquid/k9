@@ -142,6 +142,75 @@ odeltas
        hidden-output-strengths
        learning-rate)))
 
+(def new-hidden-output-strengths
+  (update-strengths
+       odeltas
+       new-hidden-neurons
+       hidden-output-strengths
+       learning-rate))
+
+(def new-input-hidden-strengths
+  (update-strengths
+       hdeltas
+       input-neurons
+       input-hidden-strengths
+       learning-rate))
+
+(testing "update strengths for hidden"
+  (is (== [[0.14996511847614283 0.20551384334705303 0.13377615028650064]
+           [0.01 0.02 0.03]]
+          (update-strengths
+           hdeltas
+           input-neurons
+           input-hidden-strengths
+           learning-rate))))
+
+
+;;; now we just need to put all the pieces together
+
+;; create a matrix
+;; prop forward input / feed forward
+;; calc errors
+;; update weights
+(def nn [ [0 0] input-hidden-strengths hidden-neurons hidden-output-strengths [0 0]])
+
+(defn feed-forward [input network]
+  (let [[in i-h-strengths h h-o-strengths out] network
+        new-h (layer-activation input i-h-strengths)
+        new-o (layer-activation new-h h-o-strengths)]
+    [input i-h-strengths new-h h-o-strengths new-o]))
+
+(testing "feed forward"
+  (is (== [input-neurons input-hidden-strengths new-hidden-neurons hidden-output-strengths new-output-neurons]
+          (feed-forward [1 0] nn))))
+
+(defn update-weights [network target learning-rate]
+  (let [[ in i-h-strengths h h-o-strengths out] network
+        o-deltas (output-deltas target out)
+        h-deltas (hlayer-deltas o-deltas h h-o-strengths)
+        n-h-o-strengths (update-strengths
+                         o-deltas
+                         h
+                         h-o-strengths
+                         learning-rate)
+        n-i-h-strengths (update-strengths
+                         h-deltas
+                         in
+                         i-h-strengths
+                         learning-rate)]
+    [in n-i-h-strengths h n-h-o-strengths out]))
+
+(update-weights (feed-forward [1 0] nn) [0 1] 0.2)
+
+(testing "update-weights"
+  (is ( == [input-neurons
+            new-input-hidden-strengths
+            new-hidden-neurons
+            new-hidden-output-strengths
+            new-output-neurons]
+           (update-weights (feed-forward [1 0] nn) [0 1] 0.2))))
+
+
 
 
 
