@@ -278,6 +278,26 @@ odeltas
 (ff [0.25 0] n4) ;=> [1.3457614704841535E-4 0.3061399408502212]
 
 
+;;;;; how bout construct a generic neural network setup
+(defn gen-strengths [to from]
+  (let [l (* to from)]
+    (map vec (partition from (repeatedly l #(rand (/ 1 l)))))))
+
+(defn construct-network [num-in num-hidden num-out]
+  (vec (map vec [(repeat num-in 0)
+             (gen-strengths num-in num-hidden)
+             (repeat num-hidden 0)
+             (gen-strengths num-hidden num-out)
+             (repeat num-out 0)])))
+
+
+
+(def tnn (construct-network 2 3 2))
+(def n5 (train-data tnn (repeatedly 1000 inverse-data) 0.2))
+(ff [1 0] n4) ;=> [-4.954958580800465E-4 0.8160149309699489]
+
+
+
 
 
 
