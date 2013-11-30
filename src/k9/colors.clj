@@ -1,12 +1,15 @@
-(ns k9.colors)
+(ns k9.colors
+  (require [k9.simple :refer :all]))
 
-;; [red orange yellow green blue purple]
+;[red orange yellow green blue purple]
 (def red    [1 0 0 0 0 0])
 (def orange [0 1 0 0 0 0])
 (def yellow [0 0 1 0 0 0])
 (def green  [0 0 0 1 0 0])
 (def blue   [0 0 0 0 1 0])
 (def purple [0 0 0 0 0 1])
+
+
 
 (def color-data
   [
@@ -55,7 +58,7 @@
    [0 205 102] green
    [0 139 69] green
 
-   ;;Blue
+   ;Blue
    [0 206 209] blue
    [0 191 255] blue
    [0 191 255] blue
@@ -80,4 +83,35 @@
    ]
   )
 
-(def color-training-data (partition 2 color-data))
+(defn normalize-input [v]
+  (mapv #(/ % 255.0) v))
+
+(def color-training-data
+  (partition 2 (mapv #(normalize-input %) color-data)))
+
+
+(def color-nn (construct-network 3 12 6))
+(defn train-epochs [n network training-data learning-rate]
+  (if (zero? n)
+    network
+    (recur (dec n)
+           (train-data network training-data learning-rate)
+           training-data
+           learning-rate)))
+;; before training
+(ff (normalize-input [255 0 0]) color-nn)               ;=> .3
+
+(def nc (train-epochs 1000 color-nn color-training-data 0.5))
+
+;; after training
+(ff (normalize-input [255 0 0]) nc)
+(ff (normalize-input [255 165 0]) nc)
+(ff (normalize-input [255 255 0]) nc)
+(ff (normalize-input [0 255 127]) nc)
+(ff (normalize-input [0 191 255]) nc)
+(ff (normalize-input [153 50 204]) nc)
+
+
+
+
+
