@@ -2,12 +2,12 @@
   (require [k9.simple :refer :all]))
 
 ;[red orange yellow green blue purple]
-(def red    [1 0 0 0 0 0])
-(def orange [0 1 0 0 0 0])
-(def yellow [0 0 1 0 0 0])
-(def green  [0 0 0 1 0 0])
-(def blue   [0 0 0 0 1 0])
-(def purple [0 0 0 0 0 1])
+(def red    [255 0 0 0 0 0])
+(def orange [0 255 0 0 0 0])
+(def yellow [0 0 255 0 0 0])
+(def green  [0 0 0 255 0 0])
+(def blue   [0 0 0 0 255 0])
+(def purple [0 0 0 0 0 255])
 
 
 
@@ -90,7 +90,7 @@
   (partition 2 (mapv #(normalize-input %) color-data)))
 
 
-(def color-nn (construct-network 3 12 6))
+(def color-nn (construct-network 3 6 6))
 (defn train-epochs [n network training-data learning-rate]
   (if (zero? n)
     network
@@ -101,17 +101,59 @@
 ;; before training
 (ff (normalize-input [255 0 0]) color-nn)               ;=> .3
 
-(def nc (train-epochs 1000 color-nn color-training-data 0.5))
+(def nc (train-epochs 1000 color-nn color-training-data 0.2))
 
 ;; after training
 (ff (normalize-input [255 0 0]) nc)
+;; [0.3120025079502493
+;;  0.2804061413007571
+;;  0.22189516312865634
+;;  -0.2829161956887886
+;;  -0.19619313386399617
+;;  0.14397479782011294]
 (ff (normalize-input [255 165 0]) nc)
+;; [0.13432569198660183
+;;  0.38889956053093694
+;;  0.43925753652865285
+;;  0.17202453927040529
+;;  -0.10084259239274129
+;;  -0.07614255846373787]
+
+
 (ff (normalize-input [255 255 0]) nc)
+;; [0.0342977314573449
+;;  0.43796103500087075
+;;  0.5328782635091539
+;;  0.3944921605278269
+;;  -0.04531791432446118
+;;  -0.18661447450991833]
+
+
 (ff (normalize-input [0 255 127]) nc)
+;; [-0.2610373377696042
+;;  0.08079658578801456
+;;  0.2322513500903176
+;;  0.5657442955721695
+;;  0.402844694651249
+;;  0.0014065678913794128]
+
+
 (ff (normalize-input [0 191 255]) nc)
+;; [-0.175954481872805
+;;  -0.08758149998678759
+;;  -0.017156154063572772
+;;  0.36086407446223373
+;;  0.5757102688628224
+;;  0.39584597583111636]
+
+
 (ff (normalize-input [153 50 204]) nc)
-
-
+;; [0.16830004463062614
+;;  0.030995906642651293
+;;  -0.025703206654810372
+;;  -0.15499642639413008
+;;  0.34272848204763423
+;;  0.5169574243884011]
 
 
 
