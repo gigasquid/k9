@@ -1,6 +1,6 @@
 # k9
 
-A small library using core.matrix to contrust Neural Networks
+A small library using core.matrix to contruct Neural Networks
 
 ## Usage
 
