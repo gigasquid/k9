@@ -90,7 +90,7 @@
   (partition 2 (mapv #(normalize-input %) color-data)))
 
 
-(def color-nn (construct-network 3 6 6))
+(def color-nn (construct-network 3 10 6))
 (defn train-epochs [n network training-data learning-rate]
   (if (zero? n)
     network
@@ -101,7 +101,7 @@
 ;; before training
 (ff (normalize-input [255 0 0]) color-nn)               ;=> .3
 
-(def nc (train-epochs 1000 color-nn color-training-data 0.2))
+(def nc (train-epochs 100 color-nn color-training-data 0.2))
 
 ;; after training
 (ff (normalize-input [255 0 0]) nc)
