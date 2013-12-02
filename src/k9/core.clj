@@ -74,7 +74,21 @@
            learning-rate)))
 
 (defn ff [input network]
+  "Feed forward and return output neurons"
   (last (feed-forward input network)))
+
+(defn gen-strengths [to from]
+  "generate random strengths for layer"
+  (let [l (* to from)]
+    (map vec (partition from (repeatedly l #(rand (/ 1 l)))))))
+
+(defn construct-network [num-in num-hidden num-out]
+  "construct a three layer neural network"
+  (vec (map vec [(repeat num-in 0)
+             (gen-strengths num-in num-hidden)
+             (repeat num-hidden 0)
+             (gen-strengths num-hidden num-out)
+             (repeat num-out 0)])))
 
 
 

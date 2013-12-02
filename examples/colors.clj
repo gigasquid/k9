@@ -1,5 +1,5 @@
 (ns k9.colors
-  (require [k9.simple :refer :all]))
+  (require [k9.core :refer :all]))
 
 ;[red orange yellow green blue purple]
 (def red    [255 0 0 0 0 0])
@@ -91,13 +91,7 @@
 
 
 (def color-nn (construct-network 3 10 6))
-(defn train-epochs [n network training-data learning-rate]
-  (if (zero? n)
-    network
-    (recur (dec n)
-           (train-data network training-data learning-rate)
-           training-data
-           learning-rate)))
+
 ;; before training
 (ff (normalize-input [255 0 0]) color-nn)               ;=> .3
 
