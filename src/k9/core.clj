@@ -1,83 +1,82 @@
-(ns k9.core)
+(ns k9.core
+  (:require [clojure.core.matrix :refer :all]
+            [clojure.core.matrix.operators :refer :all]))
 
-;; 3 layer back propagation neural network
-;; layer 1 - input layer will have RGB color ex: [255 0 0 ] FF0000
-;; layer 2 - hidden layer
-;; layer 3 - output layer -> either "Red" "Green" "Blue"
+(def activation-fn (fn [x] (Math/tanh x)))
+(def dactivation-fn (fn [y] (- 1.0 (* y y))))
 
+(defn layer-activation [inputs strengths]
+  "forward propogate the input of a layer"
+  (mapv activation-fn
+        (mapv #(reduce + %)
+              (* inputs (transpose strengths)))))
 
-;;Our neuron values
-;;Our weights
-;;Our weight changes
-;;Our error gradients
+(defn output-deltas [targets outputs]
+  "measures the delta errors for the output layer (Desired value – actual value) and multiplying it by the gradient of the activation function"
+  (* (mapv dactivation-fn outputs)
+     (- targets outputs)))
 
-{:value 0 :weight 0 :delta-weight 0 :error 0}
+(defn hlayer-deltas [odeltas neurons strengths]
+  "measures the delta errors for the hidden layer based on the output deltas"
+  (* (mapv dactivation-fn neurons)
+     (mapv #(reduce + %)
+           (* odeltas strengths))))
 
-;; input 3 neurons for R G B [255 0 0]
-
-;;random weight -0.5 to 0.5
-(defn rand-weight []
-  (if (> (rand) 0.49)
-    (rand 0.5)
-    (rand -0.5)))
-
-(defn gen-neuron []
-  {:value 0 :weight (rand-weight) :delta-weight 0 :error 0})
-
-(for [i (range 0 3)]  (gen-neuron))
-
-(defn gen-network [n-input n-hidden n-output]
-  [(vec (for [i (range 0 n-input)] (gen-neuron)))
-   (vec (for [i (range 0 n-hidden)] (gen-neuron)))
-   (vec (for [i (range 0 n-output)] (gen-neuron)))])
-
-(defn feed-input [input network]
-  (map #(assoc %1 :value %2) (first network) input))
-
-(defn update-neuron [input neuron]
-  (let [weight (:weight neuron)
-        new-value (Math/tanh (* input weight))]
-    (assoc neuron :value new-value)))
-
-(defn feed-layer [in-layer layer]
-  (let [in-values (map :value in-layer)
-        sum-in (apply + in-values)]
-    (map #(update-neuron sum-in %1) layer)))
+(defn update-strengths [deltas neurons strengths lrate]
+  "update the strengths based on the deltas and the learning rate"
+  (+ strengths (* lrate
+                  (mapv #(* deltas %) neurons))))
 
 (defn feed-forward [input network]
-  (let [input-row (feed-input input network)
-        hidden-layer (feed-layer input-row (second network))
-        output-layer (feed-layer hidden-layer (last network))]
-    [input-row hidden-layer output-layer]))
+  "feeds input through the network to the output"
+  (let [[in i-h-strengths h h-o-strengths out] network
+        new-h (layer-activation input i-h-strengths)
+        new-o (layer-activation new-h h-o-strengths)]
+    [input i-h-strengths new-h h-o-strengths new-o]))
 
-(defn dtanh [x]
-  (- 1.0 (* x x)))
+(defn update-weights [network target learning-rate]
+  "updates the weights based on targets and learning rate with back-prop"
+  (let [[ in i-h-strengths h h-o-strengths out] network
+        o-deltas (output-deltas target out)
+        h-deltas (hlayer-deltas o-deltas h h-o-strengths)
+        n-h-o-strengths (update-strengths
+                         o-deltas
+                         h
+                         h-o-strengths
+                         learning-rate)
+        n-i-h-strengths (update-strengths
+                         h-deltas
+                         in
+                         i-h-strengths
+                         learning-rate)]
+    [in n-i-h-strengths h n-h-o-strengths out]))
 
-;; next step is backward propogating the errors
+(defn train-network [network input target learning-rate]
+  "train network with one set of target data"
+  (update-weights (feed-forward input network) target learning-rate))
 
-(dtanh 3)
+(defn train-data [network data learning-rate]
+  "train network with a set of data in the form of [[input1 target1] [input2 target2]]"
+  (if-let [[input target] (first data)]
+    (recur
+     (train-network network input target learning-rate)
+     (rest data)
+     learning-rate)
+    network))
 
-(feed-forward [1 0 0] n1)
+(defn train-epochs [n network training-data learning-rate]
+  "train repeatedly n times over the same tranining data in the form of [[input1 target1] [input2 target2]]  "
+  (if (zero? n)
+    network
+    (recur (dec n)
+           (train-data network training-data learning-rate)
+           training-data
+           learning-rate)))
 
-(def input (feed-input [1 0 1] n1))
-(def hidden (second n1))
-input
+(defn ff [input network]
+  (last (feed-forward input network)))
 
 
 
 
-(first n1)
-(def x [{:x 1} {:x 2} {:x 3}])
-(def y [5 6 7])
-(assoc {:x 2} :x 4)
-(map #(assoc %1 :x %2) x y)
-;; r g b -> hidden -> red? 
-(def n1 (gen-network 3 3 1))
-(second n1)
 
-1 0
-0 0
-0 0
-
-(defn activation [v]
-  (Math/tanh 0.4))
