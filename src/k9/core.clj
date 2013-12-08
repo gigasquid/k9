@@ -6,7 +6,7 @@
 (def dactivation-fn (fn [y] (- 1.0 (* y y))))
 
 (defn layer-activation [inputs strengths]
-  "forward propogate the input of a layer"
+  "forward propagate the input of a layer"
   (mapv activation-fn
         (mapv #(reduce + %)
               (* inputs (transpose strengths)))))
