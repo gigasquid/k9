@@ -75,7 +75,7 @@ There is another example in the examples directory where the network learns to n
 ## Blog Post
 I made a blog post about making a simple neural network with an example
 here:
-[http://gigasquidsoftware.com/blog/2013/12/02/neural-networks-in-clojure-with-core-dot-matrix/])(http://gigasquidsoftware.com/blog/2013/12/02/neural-networks-in-clojure-with-core-dot-matrix/)
+[Blog](http://gigasquidsoftware.com/blog/2013/12/02/neural-networks-in-clojure-with-core-dot-matrix/)
 
 
 ## License
