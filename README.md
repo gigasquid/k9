@@ -11,8 +11,8 @@ Construct simple 3 layer networks with
 ```
 Example
 ```clojure
-(construct-network 2 3 2) ;=> [ [0 0] [input-to-hidden-strengths]
-[0 0 0] [hidden-to-output-strengths] [0 0]]
+(construct-network 2 3 2)
+;=> [ [0 0] [input-to-hidden-strengths] [0 0 0] [hidden-to-output-strengths] [0 0]]
 ```
 
 Feed foward input and get back output neuron values with
