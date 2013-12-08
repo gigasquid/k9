@@ -69,6 +69,14 @@ Example
 (ff [1 0] n4) ;=> [-3.794899940782748E-4 0.8105184486966243
 ```
 
+## Example with Colors
+There is another example in the examples directory where the network learns to name colors based on their rgb value.
+
+## Blog Post
+I made a blog post about making a simple neural network with an example
+here:
+[http://gigasquidsoftware.com/blog/2013/12/02/neural-networks-in-clojure-with-core-dot-matrix/])(http://gigasquidsoftware.com/blog/2013/12/02/neural-networks-in-clojure-with-core-dot-matrix/)
+
 
 ## License
 
