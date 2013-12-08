@@ -18,7 +18,8 @@ Example
 Feed foward input and get back output neuron values with
 ```clojure
 (ff input network)
-``
+```
+
 Example
 ```clojure
 (ff [1 0] (construct-network 2 3 2));=>[0.023969361623158485 0.014886788800864243]
