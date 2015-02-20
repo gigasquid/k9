@@ -68,13 +68,13 @@
    (is (== [0.14982559238071416 0.027569216735265096 0.018880751432503236]
            (hlayer-deltas
             odeltas
-            new-hidden-neurons
-            hidden-output-strengths)))))
+            [new-hidden-neurons
+            hidden-output-strengths])))))
 
 (def hdeltas (hlayer-deltas
               odeltas
-              new-hidden-neurons
-              hidden-output-strengths))
+              [new-hidden-neurons
+              hidden-output-strengths]))
 
 ;; Update the output weights
 ;; change = odelta * hidden value
@@ -86,24 +86,24 @@
    (is (== [[0.14996511847614283 0.20551384334705303 0.13377615028650064]
             [0.01 0.02 0.03]]
            (update-strengths
-            hdeltas
+            [hdeltas
             input-neurons
             input-hidden-strengths
-            learning-rate)))))
+            learning-rate])))))
 
 (def new-hidden-output-strengths
   (update-strengths
-       odeltas
+       [odeltas
        new-hidden-neurons
        hidden-output-strengths
-       learning-rate))
+       learning-rate]))
 
 (def new-input-hidden-strengths
   (update-strengths
-       hdeltas
+       [hdeltas
        input-neurons
        input-hidden-strengths
-       learning-rate))
+       learning-rate]))
 
 ;;; now we just need to put all the pieces together
 

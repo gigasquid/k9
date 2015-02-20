@@ -90,7 +90,7 @@
   (partition 2 (mapv #(normalize-input %) color-data)))
 
 
-(def color-nn (construct-network 3 10 6))
+(def color-nn (construct-network 3 10 2 6))
 
 ;; before training
 (ff (normalize-input [255 0 0]) color-nn)               ;=> .3
@@ -148,6 +148,3 @@
 ;;  -0.15499642639413008
 ;;  0.34272848204763423
 ;;  0.5169574243884011]
-
-
-
