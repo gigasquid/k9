@@ -2,54 +2,70 @@
   (:require [clojure.core.matrix :refer :all]
             [clojure.core.matrix.operators :refer :all]))
 
-(def activation-fn (fn [x] (Math/tanh x)))
-(def dactivation-fn (fn [y] (- 1.0 (* y y))))
+(def activation-fn
+  "defines the function implemented by a neuron"
+  (fn [x] (Math/tanh x)))
+(def dactivation-fn
+  "derivative of activation function"
+  (fn [y] (- 1.0 (* y y))))
+
+(def range2
+  "returns range with interval 2"
+  #(take (- %2 %1) (iterate (partial + 2) %1)))
+
+(defn get-weights [network]
+  "returns the weights of a network"
+  (map first (partition 1 2 (rest network))))
+
+(defn get-layers [network]
+  "returns the layers of a network, including input and output"
+  (map first (partition 1 2 network)))
 
 (defn layer-activation [inputs strengths]
-  "forward propagate the input of a layer"
-  (mapv activation-fn
-        (mapv #(reduce + %)
-              (* inputs (transpose strengths)))))
+   "forward propagate the input of a layer"
+   (mapv activation-fn
+         (mapv #(reduce + %)
+               (* inputs (transpose strengths)))))
 
 (defn output-deltas [targets outputs]
   "measures the delta errors for the output layer (Desired value – actual value) and multiplying it by the gradient of the activation function"
   (* (mapv dactivation-fn outputs)
      (- targets outputs)))
 
-(defn hlayer-deltas [odeltas neurons strengths]
+(defn hlayer-deltas [deltas [neurons strengths]]
   "measures the delta errors for the hidden layer based on the output deltas"
   (* (mapv dactivation-fn neurons)
      (mapv #(reduce + %)
-           (* odeltas strengths))))
+           (* deltas strengths))))
 
-(defn update-strengths [deltas neurons strengths lrate]
+(defn update-strengths [[deltas neurons strengths lrate]]
   "update the strengths based on the deltas and the learning rate"
   (+ strengths (* lrate
                   (mapv #(* deltas %) neurons))))
 
 (defn feed-forward [input network]
   "feeds input through the network to the output"
-  (let [[in i-h-strengths h h-o-strengths out] network
-        new-h (layer-activation input i-h-strengths)
-        new-o (layer-activation new-h h-o-strengths)]
-    [input i-h-strengths new-h h-o-strengths new-o]))
+  (let [strenghts (get-weights network) ;get weight vectors between input, hidden levels and output
+        new-activations (reductions layer-activation input strenghts) ;get the new level activations given the inputs
+        activations-indexes (cons 0 (map (partial + 2) (range2 0 (count strenghts))))] ;get the indexes corresponding to the position of level activations in network
+    (apply (partial assoc network) ; replace values at indexes with replacement values
+           (interleave activations-indexes new-activations)))) ; associate positions with replacement values
 
 (defn update-weights [network target learning-rate]
   "updates the weights based on targets and learning rate with back-prop"
-  (let [[ in i-h-strengths h h-o-strengths out] network
-        o-deltas (output-deltas target out)
-        h-deltas (hlayer-deltas o-deltas h h-o-strengths)
-        n-h-o-strengths (update-strengths
-                         o-deltas
-                         h
-                         h-o-strengths
-                         learning-rate)
-        n-i-h-strengths (update-strengths
-                         h-deltas
-                         in
-                         i-h-strengths
-                         learning-rate)]
-    [in n-i-h-strengths h n-h-o-strengths out]))
+  (let [strenghts (reverse (get-weights network)) ;get weight vectors between input, hidden levels and output
+        layers (reverse (get-layers network)) ;get layers values
+        o-deltas (output-deltas target (first layers)) ;use the output layer
+        h-deltas (->> ;compute the deltas for the hidden layers starting from the output deltas (include the init value: o-deltas)
+                  (mapcat #(list [%1 %2]) (rest layers) strenghts) ;list of vectors containing a hidden layer and the weights to the next layer
+                  (butlast ,)           ;ignore the input layer
+                  (reductions hlayer-deltas o-deltas ,) ;produce the deltas for the hidden layers
+                  )
+        h-deltas-layer-weights (mapcat #(list [%1 %2 %3 learning-rate]) h-deltas (rest layers) strenghts) ;collect values from the three parameter vectors in a single list of vectors
+        n-strenghts (map update-strengths h-deltas-layer-weights) ;produce the new strenghts
+        strenghts-indexes (reverse (map inc (range2 0 (count strenghts))))] ;get the indexes corresponding to the position of weights in network
+    (apply (partial assoc network) ; replace values at indexes with replacement values
+           (interleave strenghts-indexes n-strenghts)))) ; associate positions with replacement values
 
 (defn train-network [network input target learning-rate]
   "train network with one set of target data"
@@ -82,15 +98,19 @@
   (let [l (* to from)]
     (map vec (partition from (repeatedly l #(rand (/ 1 l)))))))
 
-(defn construct-network [num-in num-hidden num-out]
+(defn construct-network
+  ([num-in num-hidden num-out]
   "construct a three layer neural network"
-  (vec (map vec [(repeat num-in 0)
-             (gen-strengths num-in num-hidden)
-             (repeat num-hidden 0)
-             (gen-strengths num-hidden num-out)
-             (repeat num-out 0)])))
-
-
-
-
-
+  (construct-network num-in num-hidden 0 num-out))
+  ([size-in size-hidden num-hidden size-out]
+  "construct a N layer neural network"
+  (vec (map vec (concat
+                 [(repeat size-in 0)
+                  (gen-strengths size-in size-hidden)
+                  (repeat size-hidden 0)]
+                 (->>
+                  (cons (gen-strengths size-hidden size-hidden) [(repeat size-hidden 0)])
+                  (repeat (dec num-hidden))
+                  (apply concat))
+                 [(gen-strengths size-hidden size-out)
+                  (repeat size-out 0)])))))
